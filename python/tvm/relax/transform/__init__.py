@@ -17,6 +17,7 @@
 """Relax transformations. """
 
 from .transform import (
+    ReplaceDynamicToStatic,
     AdjustMatmulOrder,
     AllocateWorkspace,
     AlterOpImpl,

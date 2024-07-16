@@ -723,6 +723,10 @@ def FoldConstant() -> tvm.ir.transform.Pass:
     return _ffi_api.FoldConstant()  # type: ignore
 
 
+def ReplaceDynamicToStatic() -> tvm.ir.transform.Pass:
+    return _ffi_api.ReplaceDynamicToStatic()
+
+
 def ExpandTupleArguments() -> tvm.ir.transform.Pass:
     """Expand tuple arguments to internal functions
 

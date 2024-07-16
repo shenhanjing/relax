@@ -40,6 +40,13 @@ using Function = tvm::relax::Function;
 using DataflowBlock = tvm::relax::DataflowBlock;
 
 /*!
+ * \brief Replace dynamic variable to static value pass.
+ *
+ * \return ?
+ */
+TVM_DLL Pass ReplaceDynamicToStatic();
+
+/*!
  * \brief Create a function pass.
  *
  * \param pass_func The packed function that contains the optimization.
