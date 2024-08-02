@@ -24,35 +24,57 @@ class DynamicToStaticReplacer : public ExprMutator {
  private:
   explicit DynamicToStaticReplacer(IRModule ctx_module) : ExprMutator(ctx_module) {}
 
+  PrimExpr Var2IntImm(const tir::Var& var) {
+    static std::map<std::string, int32_t> shape_value = {{"n", 128}, {"m", 128}};
+    std::string value_name = var.get()->name_hint;
+    auto it = shape_value.find(value_name);
+    ICHECK(it != shape_value.end()) << "Var " << var << "is not defined in variable map.";
+    int32_t num = it->second;
+    PrimExpr int_imm = tir::make_const(DataType::Int(64), num);
+    return int_imm;
+  }
+
+  PrimExpr PrimExpr2Static(const PrimExpr& expr) {
+    if (expr->IsInstance<tir::VarNode>()) {
+      tir::Var var = Downcast<tir::Var>(expr);
+      return Var2IntImm(var);
+    } else if (expr->IsInstance<tir::IntImmNode>()) {
+      return expr;
+    } else if (expr->IsInstance<tir::MulNode>()) {
+      tir::Mul mul = Downcast<tir::Mul>(expr);
+      PrimExpr a = PrimExpr2Static(mul->a);
+      PrimExpr b = PrimExpr2Static(mul->b);
+      const IntImmNode* const_a = a.as<IntImmNode>();
+      const IntImmNode* const_b = b.as<IntImmNode>();
+      if (const_a && const_b) {
+        int64_t value = const_a->value * const_b->value;
+        PrimExpr int_imm = tir::make_const(DataType::Int(64), value);
+        return int_imm;
+      }
+      return tir::Mul(a, b);
+    } else {
+      LOG(FATAL) << "Not Implemented";
+      throw;
+    }
+  }
+
   using ExprMutator::VisitExpr_;
 
   Expr VisitExpr_(const ShapeExprNode* op) final {
-    std::map<std::string, uint32_t> shape_value = {{"seq_len", 64}};
-
-    tvm::relay::Shape values =
+    relay::Shape values =
         op->values.Map([this](const PrimExpr& e) { return this->VisitPrimExpr(e); });
 
-    tvm::relay::Shape static_values;
-    for (auto& item : values) {
-      if (item->GetTypeKey() == "tir.Var") {
-        tvm::tir::Var value = Downcast<tvm::tir::Var>(item);
-        std::string value_name = value.get()->name_hint;
-        auto it = shape_value.find(value_name);
-        if (it != shape_value.end()) {
-          int32_t num = it->second;
-          auto int_imm = tvm::PrimExpr((int32_t)num);
-          static_values.push_back(int_imm);
-          continue;
-        }
-      }
-      static_values.push_back(item);
+    relay::Shape static_values;
+    for (const PrimExpr& expr : values) {
+      static_values.push_back(this->PrimExpr2Static(expr));
     }
+    values = static_values;
 
-    if (static_values.same_as(op->values)) {
+    if (values.same_as(op->values)) {
       // If values does not change, struct info won't change.
       return GetRef<Expr>(op);
     } else {
-      return ShapeExpr(static_values, op->span);
+      return ShapeExpr(values, op->span);
     }
   }
 };

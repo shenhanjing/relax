@@ -111,7 +111,6 @@ def dynamic_to_static():
             [
                 backend.DispatchSortScan(),
                 transform.LegalizeOps(),
-                transform.ReplaceDynamicToStatic(),
                 transform.RewriteDataflowReshape(),
                 transform.ToNonDataflow(),
                 transform.RemovePurityChecking(),
@@ -122,6 +121,7 @@ def dynamic_to_static():
                 transform.KillAfterLastUse(),
                 transform.VMBuiltinLower(),
                 transform.ComputePrimValue(),
+                transform.ReplaceDynamicToStatic(),
                 transform.VMShapeLower(),
                 transform.AttachGlobalSymbol(),
             ],
