@@ -25,7 +25,7 @@ class DynamicToStaticReplacer : public ExprMutator {
   explicit DynamicToStaticReplacer(IRModule ctx_module) : ExprMutator(ctx_module) {}
 
   PrimExpr Var2IntImm(const tir::Var& var) {
-    static std::map<std::string, int32_t> shape_value = {{"seq_len", 16}};
+    static std::map<std::string, int32_t> shape_value = {{"seq_len", 1024}, {"n", 128}, {"m", 128}};
     std::string value_name = var.get()->name_hint;
     auto it = shape_value.find(value_name);
     if (it == shape_value.end()) {
