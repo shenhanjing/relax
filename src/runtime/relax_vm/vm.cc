@@ -1058,6 +1058,10 @@ class VirtualMachineProfiler : public VirtualMachineImpl {
       std::unordered_map<std::string, ObjectRef> metrics;
       metrics["Argument Shapes"] = profiling::ShapeString(arrs);
 
+      if (!dev) {
+        dev = Device{device_type : kDLCPU, device_id : 0};
+      }
+
       // If a suitable device is found, enable profiling.
       if (dev) {
         profiling = true;
