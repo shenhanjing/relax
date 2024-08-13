@@ -155,6 +155,9 @@ class Report(Object):
         """
         return _ffi_api.AsJSON(self)
 
+    def total_duration_us(self):
+        return float(_ffi_api.TotalDurationUs(self))
+
     @classmethod
     def from_json(cls, s):
         """Deserialize a report from JSON.

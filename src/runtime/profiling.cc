@@ -651,6 +651,14 @@ String ReportNode::AsTable(bool sort, bool aggregate, bool compute_col_sums) con
   return s.str();
 }
 
+String ReportNode::TotalDurationUs() const {
+  double duration = 0.0;
+  for (auto p : device_metrics) {
+    duration = std::max(duration, p.second["Duration (us)"].as<DurationNode>()->microseconds);
+  }
+  return String(std::to_string(duration));
+}
+
 std::string DeviceString(Device dev) {
   return DLDeviceType2Str(dev.device_type) + std::to_string(dev.device_id);
 }
@@ -792,6 +800,9 @@ TVM_REGISTER_GLOBAL("runtime.profiling.AsTable").set_body_method<Report>(&Report
 TVM_REGISTER_GLOBAL("runtime.profiling.AsCSV").set_body_typed([](Report n) { return n->AsCSV(); });
 TVM_REGISTER_GLOBAL("runtime.profiling.AsJSON").set_body_typed([](Report n) {
   return n->AsJSON();
+});
+TVM_REGISTER_GLOBAL("runtime.profiling.TotalDurationUs").set_body_typed([](Report n) {
+  return n->TotalDurationUs();
 });
 TVM_REGISTER_GLOBAL("runtime.profiling.FromJSON").set_body_typed(Report::FromJSON);
 TVM_REGISTER_GLOBAL("runtime.profiling.DeviceWrapper").set_body_typed([](Device dev) {

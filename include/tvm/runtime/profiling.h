@@ -252,6 +252,8 @@ class ReportNode : public Object {
    */
   String AsJSON() const;
 
+  String TotalDurationUs() const;
+
   static constexpr const char* _type_key = "runtime.profiling.Report";
   TVM_DECLARE_FINAL_OBJECT_INFO(ReportNode, Object);
 };
